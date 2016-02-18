@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.util.Random;
 
 import javax.swing.JButton;
 
@@ -33,7 +34,7 @@ public class SetupScreen extends Screen implements MouseMotionListener {
 	boolean loaded = false;
 	int[] shipX = new int[numShip];
 	int[] shipY = new int[numShip];
-	
+	int[][] shipPosition = new int[5][3];
 	/**
 	 * Generated serial
 	 */
@@ -48,6 +49,11 @@ public class SetupScreen extends Screen implements MouseMotionListener {
 	 * The JButton play
 	 */
 	private JButton playButton = new JButton("Play");
+	
+	/**
+	 * The JButton auto place ship
+	 */
+	private JButton autoButton = new JButton("Auto setup");
 	
 	
 	/**
@@ -85,6 +91,20 @@ public class SetupScreen extends Screen implements MouseMotionListener {
 		playButton.setSize(200, 50);
 		playButton.setLocation(690, 500);
 		this.add(playButton);
+		
+		/** Play button to main menu **/
+		autoButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				autoPosition(shipPosition);
+				display(shipPosition);
+				System.out.println("=================================");
+			}
+		});
+		autoButton.setSize(200, 50);
+		autoButton.setLocation(890, 500);
+		this.add(autoButton);
+		
 		
 		/** Add a grid to setup ships on */
 		battleGrid = new BattleGrid(120, 90);
@@ -140,5 +160,117 @@ public class SetupScreen extends Screen implements MouseMotionListener {
 		desY = e.getY();
 		System.out.println(desX + " " + desY);
 	}
+		
+	/**
+	 * Auto position all ships
+	 */
+	private static void autoPosition(int[][] shipPos)
+	{
+		int[][] grid = new int[10][10];
+		initArray(grid);
 
+		int[] shipLength = {2, 3, 3, 4, 5};
+		
+		for(int i = 0; i < shipLength.length; i++)
+		{
+			autoPositionShip(grid, shipPos[i],shipLength[i], i+1);
+		}
+		
+		// display(grid);
+	}
+	
+	/**
+	 * Initialize array
+	 * @param arr
+	 */
+	private static void initArray(int[][] arr)
+	{
+		for(int x = 0; x < arr.length; x++)
+		{
+			for(int y = 0; y < arr[x].length; y++)
+			{
+				arr[x][y] = 0;
+			}
+		}
+	}
+	
+	/**
+	 * Auto position a ship
+	 * @param grid		the battle grid
+	 * @param length	length of the ship
+	 * @param index		for displaying purposes
+	 */
+	private static void autoPositionShip(int [][] grid, int[] shipPos, int length, int index)
+	{
+		// variable for rotating
+		// 0: place ship parallel to y axis
+		// 1: place ship parallel to x axis
+		int rotate = rand(0,1);
+		
+		// keep placing the ship until finding a legal place
+		boolean flag = true;
+		
+		// coordinate variable
+		// 0: y axis
+		// 1: x axis
+		int [] coor = new int[2];
+		int position = 0;
+		
+		while(flag)
+		{
+			flag = false;
+			coor[0] = rand(0,9);
+			coor[1] = rand(0,9);
+			position = coor[rotate];
+			for(int i = 0; i < length; i++)
+			{
+				// if out of the grid or a space is already occupied => find a new space
+				if(coor[rotate] > 9 || grid[coor[0]][coor[1]] != 0)
+				{
+					flag = true;
+					continue;
+				}
+				coor[rotate]++;
+			}
+		}
+		coor[rotate] = position;
+		shipPos[0] = coor[1];
+		shipPos[1] = coor[0];
+		shipPos[2] = rotate;
+		
+		// place the ship on the grid
+		for(int i = 0; i < length; i++)
+		{
+			grid[coor[0]][coor[1]] = index;
+			coor[rotate]++;
+		}
+	}
+	
+	/**
+	 * Generate a random number with range
+	 * @param min		min value for the random number
+	 * @param max		max value for the random number
+	 * @return			the generated number
+	 */
+	private static int rand(int min, int max)
+	{
+		Random random = new Random();
+		return random.nextInt((max - min) + 1) + min;
+	}
+	
+	/**
+	 * Display an array
+	 * @param arr
+	 */
+	private static void display(int[][] arr)
+	{
+		for(int x = 0; x < arr.length; x++)
+		{
+			for(int y = 0; y < arr[x].length; y++)
+			{
+				System.out.print(arr[x][y] + " ");
+			}
+			System.out.println();
+		}
+	}
 }
